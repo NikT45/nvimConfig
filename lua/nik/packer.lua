@@ -28,6 +28,15 @@ return require('packer').startup(function(use)
   use {"akinsho/toggleterm.nvim", tag = '*'}
 
   use {
+    'windwp/nvim-autopairs',
+    config = function()
+      require('nvim-autopairs').setup{}
+    end
+  }
+
+  use 'windwp/nvim-ts-autotag'
+
+  use {
   'VonHeikemen/lsp-zero.nvim',
   branch = 'v3.x',
   requires = {
