@@ -40,10 +40,10 @@ local cmp = require('cmp')
 -- read this: https://github.com/VonHeikemen/lsp-zero.nvim/blob/v3.x/doc/md/guides/integrate-with-mason-nvim.md
 require('mason').setup({})
 require('mason-lspconfig').setup({
-  ensure_installed = {'clangd'},
+  ensure_installed = {'clangd', 'ts_ls'},
   handlers = {
     function(server_name)
-      require('lspconfig')['clangd'].setup({})
+      require('lspconfig')[server_name].setup({})
     end,
   },
 })
