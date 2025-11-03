@@ -66,13 +66,12 @@ cmp.setup({
       end
     end, { 'i', 's' }),
 
-    -- Escape cancels completion
+    -- Escape cancels completion and exits insert mode
     ['<Esc>'] = cmp.mapping(function(fallback)
       if cmp.visible() then
         cmp.abort()
-      else
-        fallback()
       end
+      fallback()
     end, { 'i' }),
   }),
 
