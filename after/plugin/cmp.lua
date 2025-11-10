@@ -1,36 +1,6 @@
 local cmp = require('cmp')
 local luasnip = require('luasnip')
 
--- Custom source for HTML tag completion
-local html_source = {}
-html_source.new = function()
-  return setmetatable({}, { __index = html_source })
-end
-
-html_source.get_trigger_characters = function()
-  return { '>' }
-end
-
-html_source.complete = function(self, request, callback)
-  local line = request.context.cursor_before_line
-  local tag_match = line:match('<(%w+)[^>]*>$')
-
-  if tag_match then
-    local items = {
-      {
-        label = '</' .. tag_match .. '>',
-        kind = cmp.lsp.CompletionItemKind.Snippet,
-        insertText = '</' .. tag_match .. '>',
-        detail = 'Close HTML tag',
-        preselect = true,
-      }
-    }
-    callback({ items = items, isIncomplete = false })
-  else
-    callback({ items = {}, isIncomplete = false })
-  end
-end
-
 cmp.setup({
   snippet = {
     expand = function(args)
@@ -66,17 +36,21 @@ cmp.setup({
       end
     end, { 'i', 's' }),
 
-    -- Escape cancels completion and exits insert mode
+
+ -- Escape cancels completion and exits insert mode
     ['<Esc>'] = cmp.mapping(function(fallback)
       if cmp.visible() then
         cmp.abort()
+      else
+        fallback()
       end
       fallback()
     end, { 'i' }),
   }),
 
+
+
   sources = cmp.config.sources({
-    { name = 'html_tags', priority = 1100 },
     { name = 'nvim_lsp', priority = 1000 },
     { name = 'luasnip', priority = 750 },
     { name = 'buffer', priority = 500 },
@@ -87,7 +61,6 @@ cmp.setup({
   completion = {
     completeopt = 'menu,menuone,noinsert',
     keyword_length = 1,
-    trigger_characters = { '>' },
   },
 
   -- Custom formatting for better visibility
@@ -102,22 +75,8 @@ cmp.setup({
   },
 })
 
--- Register custom HTML tag source
-cmp.register_source('html_tags', html_source.new())
-
--- Configure per-filetype sources
-cmp.setup.filetype('html', {
-  sources = cmp.config.sources({
-    { name = 'html_tags', priority = 1100 },
-    { name = 'nvim_lsp', priority = 1000 },
-    { name = 'luasnip', priority = 750 },
-    { name = 'buffer', priority = 500 },
-  })
-})
-
 cmp.setup.filetype('jsx', {
   sources = cmp.config.sources({
-    { name = 'html_tags', priority = 1100 },
     { name = 'nvim_lsp', priority = 1000 },
     { name = 'luasnip', priority = 750 },
     { name = 'buffer', priority = 500 },
@@ -126,7 +85,6 @@ cmp.setup.filetype('jsx', {
 
 cmp.setup.filetype('tsx', {
   sources = cmp.config.sources({
-    { name = 'html_tags', priority = 1100 },
     { name = 'nvim_lsp', priority = 1000 },
     { name = 'luasnip', priority = 750 },
     { name = 'buffer', priority = 500 },
@@ -135,7 +93,6 @@ cmp.setup.filetype('tsx', {
 
 cmp.setup.filetype('javascript', {
   sources = cmp.config.sources({
-    { name = 'html_tags', priority = 1100 },
     { name = 'nvim_lsp', priority = 1000 },
     { name = 'luasnip', priority = 750 },
     { name = 'buffer', priority = 500 },
@@ -144,7 +101,6 @@ cmp.setup.filetype('javascript', {
 
 cmp.setup.filetype('typescript', {
   sources = cmp.config.sources({
-    { name = 'html_tags', priority = 1100 },
     { name = 'nvim_lsp', priority = 1000 },
     { name = 'luasnip', priority = 750 },
     { name = 'buffer', priority = 500 },
@@ -153,7 +109,6 @@ cmp.setup.filetype('typescript', {
 
 cmp.setup.filetype('javascriptreact', {
   sources = cmp.config.sources({
-    { name = 'html_tags', priority = 1100 },
     { name = 'nvim_lsp', priority = 1000 },
     { name = 'luasnip', priority = 750 },
     { name = 'buffer', priority = 500 },
@@ -162,7 +117,6 @@ cmp.setup.filetype('javascriptreact', {
 
 cmp.setup.filetype('typescriptreact', {
   sources = cmp.config.sources({
-    { name = 'html_tags', priority = 1100 },
     { name = 'nvim_lsp', priority = 1000 },
     { name = 'luasnip', priority = 750 },
     { name = 'buffer', priority = 500 },
