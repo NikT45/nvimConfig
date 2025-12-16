@@ -1,7 +1,7 @@
 local execs = {
-  { nil, "<M-1>", "Horizontal Terminal", "horizontal", 0.3 },
-  { nil, "<M-2>", "Vertical Terminal", "vertical", 0.4 },
-  { nil, "<M-3>", "Float Terminal", "float", nil },
+  { nil, "<C-h>", "Horizontal Terminal", "horizontal", 0.3 },
+  { nil, "<C-v>", "Vertical Terminal", "vertical", 0.4 },
+  { nil, "<C-f>", "Float Terminal", "float", nil },
 }
 
 local function get_buf_size()
@@ -108,10 +108,15 @@ vim.api.nvim_create_autocmd({ "TermEnter" }, {
 
 local opts = { noremap = true, silent = true }
 function _G.set_terminal_keymaps()
-  vim.api.nvim_buf_set_keymap(0, "t", "<m-h>", [[<C-\><C-n><C-W>h]], opts)
-  vim.api.nvim_buf_set_keymap(0, "t", "<m-j>", [[<C-\><C-n><C-W>j]], opts)
-  vim.api.nvim_buf_set_keymap(0, "t", "<m-k>", [[<C-\><C-n><C-W>k]], opts)
-  vim.api.nvim_buf_set_keymap(0, "t", "<m-l>", [[<C-\><C-n><C-W>l]], opts)
+  vim.api.nvim_buf_set_keymap(0, "t", "<C-h>", [[<C-\><C-n><C-W>h]], opts)
+  vim.api.nvim_buf_set_keymap(0, "t", "<C-j>", [[<C-\><C-n><C-W>j]], opts)
+  vim.api.nvim_buf_set_keymap(0, "t", "<C-k>", [[<C-\><C-n><C-W>k]], opts)
+  vim.api.nvim_buf_set_keymap(0, "t", "<C-l>", [[<C-\><C-n><C-W>l]], opts)
+  -- Resize terminal
+  vim.api.nvim_buf_set_keymap(0, "t", "<C-Up>", [[<C-\><C-n>:resize +5<CR>i]], opts)
+  vim.api.nvim_buf_set_keymap(0, "t", "<C-Down>", [[<C-\><C-n>:resize -5<CR>i]], opts)
+  vim.api.nvim_buf_set_keymap(0, "t", "<C-Right>", [[<C-\><C-n>:vertical resize +5<CR>i]], opts)
+  vim.api.nvim_buf_set_keymap(0, "t", "<C-Left>", [[<C-\><C-n>:vertical resize -5<CR>i]], opts)
 end
 
 -- Custom terminals
@@ -186,3 +191,9 @@ end
 vim.api.nvim_set_keymap("n", "<leader>gz", "<cmd>lua _lazygit_toggle()<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<leader>co", "<cmd>lua _bun_outdated()<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<leader>cr", "<cmd>lua _cargo_run()<CR>", { noremap = true, silent = true })
+
+-- Window navigation in normal mode
+vim.api.nvim_set_keymap("n", "<leader>h", "<C-W>h", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<leader>j", "<C-W>j", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<leader>k", "<C-W>k", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<leader>l", "<C-W>l", { noremap = true, silent = true })
