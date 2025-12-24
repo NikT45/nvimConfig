@@ -1,31 +1,88 @@
-local execs = {
-  { nil, "<C-h>", "Horizontal Terminal", "horizontal", 0.3 },
-  { nil, "<C-v>", "Vertical Terminal", "vertical", 0.4 },
-  { nil, "<C-f>", "Float Terminal", "float", nil },
-}
+--local execs = {
+  --{ nil, "<leader>th", "Horizontal Terminal", "horizontal", 0.3 },
+  --{ nil, "<leader>tv", "Vertical Terminal", "vertical", 0.4 },
+  --{ nil, "<leader>tf", "Float Terminal", "float", nil },
+--}
+
+local Terminal = require("toggleterm.terminal").Terminal
+
+--[[
 
 local function get_buf_size()
   local cbuf = vim.api.nvim_get_current_buf()
   local bufinfo = vim.tbl_filter(function(buf)
     return buf.bufnr == cbuf
   end, vim.fn.getwininfo(vim.api.nvim_get_current_win()))[1]
-  if bufinfo == nil then
-    return { width = -1, height = -1 }
-  end
+  if not bufinfo then return { width = -1, height = -1 } end
   return { width = bufinfo.width, height = bufinfo.height }
 end
+local function get_dynamic_terminal_size(direction, size)
+  if direction ~= "float" and type(size) == "number" and size > 0 and size < 1 then
+    local buf_sizes = get_buf_size()
+    local base = (direction == "horizontal") and buf_sizes.height or buf_sizes.width
+    return math.floor(base * size)
+  end
+  return size
+end
+
+]]
+local function get_buf_size()
+    local cbuf = vim.api.nvim_get_current_buf()
+    local bufinfo = vim.tbl_filter(function(buf)
+        return buf.bufnr == cbuf
+    end, vim.fn.getwininfo(vim.api.nvim_get_current_win()))[1]
+    if bufinfo == nil then
+        return { width = -1, height = -1 }
+    end
+    return { width = bufinfo.width, height = bufinfo.height }
+end
+
 
 local function get_dynamic_terminal_size(direction, size)
-  size = size
-  if direction ~= "float" and tostring(size):find(".", 1, true) then
-    size = math.min(size, 1.0)
-    local buf_sizes = get_buf_size()
-    local buf_size = direction == "horizontal" and buf_sizes.height or buf_sizes.width
-    return buf_size * size
-  else
-    return size
-  end
+    size = size
+    if direction ~= "float" and tostring(size):find(".", 1, true) then
+        size = math.min(size, 1.0)
+        local buf_sizes = get_buf_size()
+        local buf_size = direction == "horizontal" and buf_sizes.height or buf_sizes.width
+        return buf_size * size
+    else
+        return size
+    end
 end
+-- One cache per direction+count so toggling reuses the same instance
+local term_cache = {} -- key: "h:101", "v:201", etc.
+
+local function toggle_term(direction, size_ratio, base_offset)
+  local n = vim.v.count1 -- defaults to 1 when no count is given
+  local count = base_offset + n
+  local key = string.format("%s:%d", direction, count)
+
+  if not term_cache[key] then
+    term_cache[key] = Terminal:new({
+      cmd = vim.o.shell,
+      direction = direction,
+      count = count,
+    })
+  end
+
+  local size = get_dynamic_terminal_size(direction, size_ratio)
+  term_cache[key]:toggle(size, direction)
+end
+
+vim.keymap.set({ "n", "t" }, "<leader>th", function()
+  toggle_term("horizontal", 0.30, 100) -- 101, 102, 103...
+end, { desc = "Toggle horizontal terminal (countable)", silent = true })
+
+vim.keymap.set({ "n", "t" }, "<leader>tv", function()
+  toggle_term("vertical", 0.50, 200) -- 201, 202, 203...
+end, { desc = "Toggle vertical terminal (countable)", silent = true })
+
+vim.keymap.set({ "n", "t" }, "<leader>tf", function()
+  toggle_term("float", nil, 300) -- 301, 302, ...
+end, { desc = "Toggle floating terminal (countable)", silent = true })
+
+--end
+
 
 local exec_toggle = function(opts)
   local Terminal = require("toggleterm.terminal").Terminal
@@ -44,7 +101,7 @@ local add_exec = function(opts)
     exec_toggle { cmd = opts.cmd, count = opts.count, direction = opts.direction, size = opts.size() }
   end, { desc = opts.label, noremap = true, silent = true })
 end
-
+--[[
 for i, exec in pairs(execs) do
   local direction = exec[4]
 
@@ -61,11 +118,11 @@ for i, exec in pairs(execs) do
 
   add_exec(opts)
 end
-
+]]
 require("toggleterm").setup {
   size = 20,
   open_mapping = [[<c-t>]],
-  hide_numbers = true, -- hide the number column in toggleterm buffers
+  hide_numbers = false, -- hide the number column in toggleterm buffers
   shade_filetypes = {},
   shade_terminals = true,
   shading_factor = 2, -- the degree by which to darken to terminal colour, default: 1 for dark backgrounds, 3 for light
@@ -112,12 +169,24 @@ function _G.set_terminal_keymaps()
   vim.api.nvim_buf_set_keymap(0, "t", "<C-j>", [[<C-\><C-n><C-W>j]], opts)
   vim.api.nvim_buf_set_keymap(0, "t", "<C-k>", [[<C-\><C-n><C-W>k]], opts)
   vim.api.nvim_buf_set_keymap(0, "t", "<C-l>", [[<C-\><C-n><C-W>l]], opts)
-  -- Resize terminal
-  vim.api.nvim_buf_set_keymap(0, "t", "<C-Up>", [[<C-\><C-n>:resize +5<CR>i]], opts)
-  vim.api.nvim_buf_set_keymap(0, "t", "<C-Down>", [[<C-\><C-n>:resize -5<CR>i]], opts)
-  vim.api.nvim_buf_set_keymap(0, "t", "<C-Right>", [[<C-\><C-n>:vertical resize +5<CR>i]], opts)
-  vim.api.nvim_buf_set_keymap(0, "t", "<C-Left>", [[<C-\><C-n>:vertical resize -5<CR>i]], opts)
 end
+vim.keymap.set("n", "<C-h>", "<C-w>h", { silent = true })
+vim.keymap.set("n", "<C-j>", "<C-w>j", { silent = true })
+vim.keymap.set("n", "<C-k>", "<C-w>k", { silent = true })
+vim.keymap.set("n", "<C-l>", "<C-w>l", { silent = true })
+
+
+-- Resize windows
+vim.keymap.set("n", "<leader><Left>",  ":vertical resize -5<CR>", { silent = true })
+vim.keymap.set("n", "<leader><Right>", ":vertical resize +5<CR>", { silent = true })
+vim.keymap.set("n", "<leader><Up>",    ":resize +3<CR>",          { silent = true })
+vim.keymap.set("n", "<leader><Down>",  ":resize -3<CR>",          { silent = true })
+local opts = { noremap = true, silent = true }
+
+vim.keymap.set("t", "<leader><Left>",  [[<C-\><C-n>:vertical resize -5<CR>]], opts)
+vim.keymap.set("t", "<leader><Right>", [[<C-\><C-n>:vertical resize +5<CR>]], opts)
+vim.keymap.set("t", "<leader><Up>",    [[<C-\><C-n>:resize +3<CR>]],          opts)
+vim.keymap.set("t", "<leader><Down>",  [[<C-\><C-n>:resize -3<CR>]],          opts)
 
 -- Custom terminals
 local Terminal = require("toggleterm.terminal").Terminal
@@ -175,25 +244,19 @@ local cargo_run = Terminal:new {
   end,
 }
 
-function _lazygit_toggle()
-  lazygit:toggle()
-end
+--function _lazygit_toggle()
+--  lazygit:toggle()
+--end
 
-function _bun_outdated()
-  bun_outdated:toggle()
-end
-
-function _cargo_run()
-  cargo_run:toggle()
-end
+--function _bun_outdated()
+  --bun_outdated:toggle()
+--end
+--
+--function _cargo_run()
+  --cargo_run:toggle()
+--end
 
 -- Uncomment these lines if you want to use these keybindings
-vim.api.nvim_set_keymap("n", "<leader>gz", "<cmd>lua _lazygit_toggle()<CR>", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "<leader>co", "<cmd>lua _bun_outdated()<CR>", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "<leader>cr", "<cmd>lua _cargo_run()<CR>", { noremap = true, silent = true })
-
--- Window navigation in normal mode
-vim.api.nvim_set_keymap("n", "<leader>h", "<C-W>h", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "<leader>j", "<C-W>j", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "<leader>k", "<C-W>k", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "<leader>l", "<C-W>l", { noremap = true, silent = true })
+--vim.api.nvim_set_keymap("n", "<leader>gz", "<cmd>lua _lazygit_toggle()<CR>", { noremap = true, silent = true })
+--vim.api.nvim_set_keymap("n", "<leader>co", "<cmd>lua _bun_outdated()<CR>", { noremap = true, silent = true })
+--vim.api.nvim_set_keymap("n", "<leader>cr", "<cmd>lua _cargo_run()<CR>", { noremap = true, silent = true })
