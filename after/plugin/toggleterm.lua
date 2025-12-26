@@ -69,15 +69,15 @@ local function toggle_term(direction, size_ratio, base_offset)
   term_cache[key]:toggle(size, direction)
 end
 
-vim.keymap.set({ "n", "t" }, "<leader>th", function()
+vim.keymap.set({ "n" }, "<leader>th", function()
   toggle_term("horizontal", 0.30, 100) -- 101, 102, 103...
 end, { desc = "Toggle horizontal terminal (countable)", silent = true })
 
-vim.keymap.set({ "n", "t" }, "<leader>tv", function()
+vim.keymap.set({ "n" }, "<leader>tv", function()
   toggle_term("vertical", 0.50, 200) -- 201, 202, 203...
 end, { desc = "Toggle vertical terminal (countable)", silent = true })
 
-vim.keymap.set({ "n", "t" }, "<leader>tf", function()
+vim.keymap.set({ "n" }, "<leader>tf", function()
   toggle_term("float", nil, 300) -- 301, 302, ...
 end, { desc = "Toggle floating terminal (countable)", silent = true })
 
