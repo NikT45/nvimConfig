@@ -1,8 +1,4 @@
---local execs = {
-  --{ nil, "<leader>th", "Horizontal Terminal", "horizontal", 0.3 },
-  --{ nil, "<leader>tv", "Vertical Terminal", "vertical", 0.4 },
-  --{ nil, "<leader>tf", "Float Terminal", "float", nil },
---}
+-- Removed exec-based system in favor of count-based system below
 
 local Terminal = require("toggleterm.terminal").Terminal
 
@@ -68,57 +64,20 @@ local function toggle_term(direction, size_ratio, base_offset)
   local size = get_dynamic_terminal_size(direction, size_ratio)
   term_cache[key]:toggle(size, direction)
 end
-
-vim.keymap.set({ "n" }, "<leader>th", function()
+-- Count-based terminal toggles: use 1<C-x>, 2<C-x>, 3<C-x>, etc. for multiple instances
+vim.keymap.set({ "n", "t" }, "<C-x>", function()
   toggle_term("horizontal", 0.30, 100) -- 101, 102, 103...
 end, { desc = "Toggle horizontal terminal (countable)", silent = true })
 
-vim.keymap.set({ "n" }, "<leader>tv", function()
+vim.keymap.set({ "n", "t" }, "<C-v>", function()
   toggle_term("vertical", 0.50, 200) -- 201, 202, 203...
 end, { desc = "Toggle vertical terminal (countable)", silent = true })
 
-vim.keymap.set({ "n" }, "<leader>tf", function()
+vim.keymap.set({ "n", "t" }, "<C-f>", function()
   toggle_term("float", nil, 300) -- 301, 302, ...
 end, { desc = "Toggle floating terminal (countable)", silent = true })
 
---end
 
-
-local exec_toggle = function(opts)
-  local Terminal = require("toggleterm.terminal").Terminal
-  local term = Terminal:new { cmd = opts.cmd, count = opts.count, direction = opts.direction }
-  term:toggle(opts.size, opts.direction)
-end
-
-local add_exec = function(opts)
-  local binary = opts.cmd:match "(%S+)"
-  if binary and vim.fn.executable(binary) ~= 1 then
-    vim.notify("Skipping configuring executable " .. binary .. ". Please make sure it is installed properly.")
-    return
-  end
-
-  vim.keymap.set({ "n", "t" }, opts.keymap, function()
-    exec_toggle { cmd = opts.cmd, count = opts.count, direction = opts.direction, size = opts.size() }
-  end, { desc = opts.label, noremap = true, silent = true })
-end
---[[
-for i, exec in pairs(execs) do
-  local direction = exec[4]
-
-  local opts = {
-    cmd = exec[1] or vim.o.shell,
-    keymap = exec[2],
-    label = exec[3],
-    count = i + 100,
-    direction = direction,
-    size = function()
-      return get_dynamic_terminal_size(direction, exec[5])
-    end,
-  }
-
-  add_exec(opts)
-end
-]]
 require("toggleterm").setup {
   size = 20,
   open_mapping = [[<c-t>]],
@@ -183,10 +142,11 @@ vim.keymap.set("n", "<leader><Up>",    ":resize +3<CR>",          { silent = tru
 vim.keymap.set("n", "<leader><Down>",  ":resize -3<CR>",          { silent = true })
 local opts = { noremap = true, silent = true }
 
-vim.keymap.set("t", "<leader><Left>",  [[<C-\><C-n>:vertical resize -5<CR>]], opts)
-vim.keymap.set("t", "<leader><Right>", [[<C-\><C-n>:vertical resize +5<CR>]], opts)
-vim.keymap.set("t", "<leader><Up>",    [[<C-\><C-n>:resize +3<CR>]],          opts)
-vim.keymap.set("t", "<leader><Down>",  [[<C-\><C-n>:resize -3<CR>]],          opts)
+-- Terminal resize with Alt+arrows (leader key passes through to shell)
+vim.keymap.set("t", "<M-Left>",  [[<C-\><C-n>:vertical resize -5<CR>i]], opts)
+vim.keymap.set("t", "<M-Right>", [[<C-\><C-n>:vertical resize +5<CR>i]], opts)
+vim.keymap.set("t", "<M-Up>",    [[<C-\><C-n>:resize +3<CR>i]],          opts)
+vim.keymap.set("t", "<M-Down>",  [[<C-\><C-n>:resize -3<CR>i]],          opts)
 
 -- Custom terminals
 local Terminal = require("toggleterm.terminal").Terminal
