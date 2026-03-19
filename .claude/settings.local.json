@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:github.com)",
-      "Bash(nvim:*)"
+      "Bash(nvim:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim)"
     ],
     "deny": [],
     "ask": []
